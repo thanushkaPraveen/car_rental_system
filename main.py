@@ -1,17 +1,27 @@
-import multiprocessing  # For running processes concurrently
-import threading  # For running threads concurrently
-
 # Importing required controllers, database connection, models, and services
+from fastapi import FastAPI
+
 from controllers.admin_controller import AdminController
 from controllers.customer_controller import CustomerController
 from controllers.user_controller import UserController
 from database.connection import Database
 from models.user import User
-from presenter.user_interface import UserInterface, UiTypes
-from services.chatbot import ChatBot
+from presenter.user_interface import UserInterface
+from routes import user_routes
+from routes import booking_routes
+import uvicorn
+
 from services.web_server import WebServer
 from utils.populate_db import insert_records
 
+# Initialize FastAPI app
+app = FastAPI(
+    title="Car Rental API",
+    version="1.0.0",
+    description="APIs Car Rental management system"
+)
+app.include_router(user_routes.router, prefix="/api/v1/user", tags=["User"])
+app.include_router(booking_routes.router, prefix="/api/v1/booking", tags=["Booking"])
 
 def run_flask():
     """
@@ -25,6 +35,7 @@ def run_flask():
 
 
 def main():
+    uvicorn.run(app, host="0.0.0.0", port=8000)
     """
     Main function for handling user interactions and chatbot services.
     It initializes the database and UI, starts the web server,

@@ -8,6 +8,7 @@ from models.additional_services import AdditionalServices
 from models.booking import Booking
 from models.booking_additional_services import BookingAdditionalServices
 from models.car import Car
+from models.response_model import ResponseModel
 
 from presenter.user_interface import UserInterface, UiTypes
 from services.email_service import EmailService
@@ -96,6 +97,20 @@ class CustomerController(BaseController):
         except Exception as e:
             # Handle the exception
             print(f"An error occurred: {e}")
+
+    def get_all_cars_api(self):
+        try:
+            return ResponseModel.create(Car.select_with_details_and_display(self.db)).to_dict()
+
+        except Exception as e:
+            ResponseModel.create(f"An error occurred: {e}", is_error=True).to_dict()
+
+    def get_all_additional_services_api(self):
+        try:
+            return AdditionalServices.display_additional_services(self.db)
+
+        except Exception as e:
+            ResponseModel.create(f"An error occurred: {e}", is_error=True).to_dict()
 
     def select_services(self, all_services):
         """Loops until the user selects valid services."""

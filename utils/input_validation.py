@@ -1,6 +1,13 @@
 import re
+from plistlib import InvalidFileException
+
 import bcrypt
 from datetime import datetime, timedelta
+
+from attr import dataclass
+
+from models.invalid_input_type_error import InvalidInputTypeError
+
 
 def get_valid_integer(prompt, min_value, max_value):
     while True:
@@ -28,6 +35,13 @@ def get_non_empty_input(prompt):
             return value
         else:
             print("This field cannot be empty. Please try again.")
+
+def get_non_empty_input_api(data):
+    value = data.strip()
+    if value:
+        return value
+    else:
+        raise InvalidInputTypeError("This field cannot be empty. Please try again.")
 
 def get_valid_float(prompt, min_value):
     while True:
@@ -108,6 +122,15 @@ def get_valid_email():
         else:
             print("Invalid email format. Please enter a valid email address.")
 
+def get_valid_email_api(user_email):
+    email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    email = user_email.strip()
+    if re.match(email_pattern, email):
+        return email
+    else:
+        raise InvalidInputTypeError("Invalid email format. Please enter a valid email address.")
+
+
 def get_valid_user_type():
     while True:
         is_active = input("Enter User Type ID (e.g., 1 for Admin, 2 for Regular User):").strip()
@@ -115,6 +138,14 @@ def get_valid_user_type():
             return int(is_active)
         else:
             print("Invalid input. Please enter 1 (Yes) or 2 (No).")
+
+def get_valid_user_type_api(user_type):
+    data = user_type.strip()
+    if data in {"1", "2"}:
+        return int(data)
+    else:
+        raise InvalidInputTypeError("Invalid input. Please enter 1 (Yes) or 2 (No).")
+
 
 def hash_password(password: str) -> str:
     """Hashes the password using bcrypt and returns the hashed password."""
@@ -136,6 +167,16 @@ def get_valid_phone_number():
             return phone_number  # Valid number
         else:
             print("Invalid phone number. Please enter a valid number (7-15 digits, optional +).")
+
+def get_valid_phone_number_api(user_phone_number):
+    """Prompts user to enter a valid phone number and validates it."""
+    phone_pattern = r'^\+?[0-9]{7,15}$'  # Allows optional "+" at the start and 7-15 digits
+    phone_number = user_phone_number.strip()
+    if re.match(phone_pattern, phone_number):
+        return phone_number  # Valid number
+    else:
+        raise InvalidInputTypeError("Invalid phone number. Please enter a valid number (7-15 digits, optional +).")
+
 
 
 def get_future_date():
