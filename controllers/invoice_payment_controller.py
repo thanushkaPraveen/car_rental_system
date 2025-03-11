@@ -7,6 +7,7 @@ from database.sql_statement import SELECT_ADDITIONAL_SERVICES_BY_BOOKING_ID
 from models.additional_services import AdditionalServices
 from models.booking import Booking
 from models.invoice import Invoice
+from models.response_model import ResponseModel
 from models.user import User
 from presenter.user_interface import UiTypes
 from utils.datetime_utils import format_timestamp
@@ -146,3 +147,9 @@ Payment URL: {Constants.PAYMENT_URL}{invoice["invoice_id"]}
         img.show()
 
         pass
+
+    def get_all_invoices_api(self, user_id):
+        try:
+            return ResponseModel.create(Invoice.fetch_user_invoices(self.db, user_id)).to_dict()
+        except Exception as e:
+            return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()

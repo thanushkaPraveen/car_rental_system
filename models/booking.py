@@ -20,6 +20,12 @@ class Booking:
         self.is_active = is_active
         self.booking_id = booking_id
 
+    def __str__(self):
+        return (f"Booking ID: {self.booking_id}, User ID: {self.user_id}, Car ID: {self.car_id}, "
+                f"Booking Status ID: {self.booking_status_id}, Start Date: {self.start_date}, "
+                f"End Date: {self.end_date}, Total Amount: {self.total_amount}, Note: {self.note}, "
+                f"Is Active: {self.is_active}")
+
     @staticmethod
     def insert(db, booking):
         sql = INSERT_BOOKING

@@ -98,6 +98,39 @@ class CustomerController(BaseController):
             # Handle the exception
             print(f"An error occurred: {e}")
 
+    def create_a_booking_api(self, booking):
+        try:
+            print(f"create_a_booking: {booking}")
+            car_id = booking["car_id"]
+            new_car = Car.select_car(db=self.db, car_id=car_id)[0]
+
+            start_date = booking["start_date"]
+            end_date = booking["end_date"]
+            booking_days = calculate_days_difference(start_date, end_date)
+            if booking_days <= 0:
+                return ResponseModel.create(message="Selected booking days not valid.", is_error=True, code=400).to_dict()
+            total = float(new_car.daily_rate) * booking_days
+
+            new_booking = Booking(user_id=booking["user_id"],
+                                  car_id=new_car.car_id,
+                                  booking_status_id=2,
+                                  start_date=booking["start_date"],
+                                  end_date=booking["end_date"],
+                                  total_amount=total,
+                                  note=booking["note"],
+                                  is_active=1)
+            return ResponseModel.create(Booking.insert(self.db, new_booking)).to_dict()
+        except IndexError as e:
+            return ResponseModel.create(message="Entered car id not found.", is_error=True, code=400).to_dict()
+        except Exception as e:
+            return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()
+
+    def get_all_bookings_api(self, user_id):
+        try:
+            return ResponseModel.create(Booking.get_bookings_by_user_id(self.db, user_id)).to_dict()
+        except Exception as e:
+            return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()
+
     def get_all_cars_api(self):
         try:
             return ResponseModel.create(Car.select_with_details_and_display(self.db)).to_dict()

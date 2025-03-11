@@ -12,3 +12,9 @@ class BookingService:
 
     def get_all_additional_services(self):
         return self.repository.get_all_additional_services_api()
+
+    def create_a_booking(self, booking):
+        return self.repository.create_a_booking_api(booking)
+
+    def get_all_bookings(self, user_id):
+        return self.repository.get_all_bookings_api(user_id)

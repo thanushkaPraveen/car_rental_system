@@ -213,3 +213,16 @@ def get_user_selection():
         except ValueError:
             print("Invalid input. Please enter numeric IDs separated by commas.")
 
+
+def calculate_days_difference(start_date, end_date):
+    """
+    Calculate the difference in days between two Unix timestamps.
+
+    :param start_date: Unix timestamp for the start date
+    :param end_date: Unix timestamp for the end date
+    :return: The difference in days
+    """
+    start_datetime = datetime.utcfromtimestamp(start_date)
+    end_datetime = datetime.utcfromtimestamp(end_date)
+    return (end_datetime - start_datetime).days
+

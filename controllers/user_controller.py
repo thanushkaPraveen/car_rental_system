@@ -63,9 +63,9 @@ class UserController:
             if verify_password(user_password, stored_hashed_password):
                 return ResponseModel.create(check_user[0]).to_dict()
             else:
-                return ResponseModel.create("❌ Invalid password. Please try again.", is_error=True)
+                return ResponseModel.create(message="❌ Invalid password. Please try again.", is_error=True)
         else:
-            return ResponseModel.create("❌ Invalid password. Please try again.", is_error=True)
+            return ResponseModel.create(message="❌ Invalid password. Please try again.", is_error=True)
 
     def register(self):
 
@@ -119,8 +119,8 @@ class UserController:
 
                 return ResponseModel.create(User.insert(self.db, register_user)).to_dict()
             else:
-                return ResponseModel.create("Errr: Entered User Type is Wrong.", is_error=True)
+                return ResponseModel.create(message="Errr: Entered User Type is Wrong.", is_error=True)
         except InvalidInputTypeError as e:
             return ResponseModel.create(e.message, is_error=True, code=400).to_dict()
         except Exception as e:
-            return ResponseModel.create("Unknown server error.", is_error=True, code=400).to_dict()
+            return ResponseModel.create(message="Unknown server error.", is_error=True, code=400).to_dict()

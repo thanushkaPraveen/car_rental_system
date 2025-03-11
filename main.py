@@ -9,6 +9,7 @@ from models.user import User
 from presenter.user_interface import UserInterface
 from routes import user_routes
 from routes import booking_routes
+from routes import invoice_routes
 import uvicorn
 
 from services.web_server import WebServer
@@ -22,6 +23,7 @@ app = FastAPI(
 )
 app.include_router(user_routes.router, prefix="/api/v1/user", tags=["User"])
 app.include_router(booking_routes.router, prefix="/api/v1/booking", tags=["Booking"])
+app.include_router(invoice_routes.router, prefix="/api/v1/invoice", tags=["Invoice"])
 
 def run_flask():
     """

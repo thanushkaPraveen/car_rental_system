@@ -89,6 +89,38 @@ class Car:
         return cars
 
     @staticmethod
+    def select_car(db, car_id):
+        sql = SELECT_CAR_BY_ID
+        values = (car_id,)
+        rows = db.select_from_database(sql, values)
+
+        # for row in rows:
+        #     print(row)
+
+        # Create a list to hold Car objects
+        cars = []
+        for row in rows:
+            # Assuming `row` is a tuple in the format:
+            # (car_id, car_brand_model_id, car_status_id, number_plate, model_name, daily_rate, year, mileage,
+            #  min_rental_period, max_rental_period, is_active, ...)
+            car_obj = Car(
+                car_brand_model_id=row[1],  # Assuming `car_brand_model_id` is the second column
+                car_status_id=row[2],  # Assuming `car_status_id` is the third column
+                number_plate=row[3],  # Assuming `number_plate` is the fourth column
+                model_name=row[4],  # Assuming `model_name` is the fifth column
+                daily_rate=row[5],  # Assuming `daily_rate` is the sixth column
+                year=row[6],  # Assuming `year` is the seventh column
+                mileage=row[7],  # Assuming `mileage` is the eighth column
+                min_rental_period=row[8],  # Assuming `min_rental_period` is the ninth column
+                max_rental_period=row[9],  # Assuming `max_rental_period` is the tenth column
+                is_active=row[10],  # Assuming `is_active` is the eleventh column
+                car_id=row[0]  # Assuming `car_id` is the first column
+            )
+            cars.append(car_obj)
+
+        return cars
+
+    @staticmethod
     def select_with_details(db, is_available=None):
 
         sql = ""
