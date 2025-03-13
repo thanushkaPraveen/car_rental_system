@@ -107,6 +107,68 @@ class EmailService:
         except Exception as e:
             print(f"Failed to send email: {e}")
 
+    def send_car_booking_email_api(self, customer, booking, car, additional_services=None):
+        """
+        Sends a car booking confirmation email, including additional services if booked.
+        """
+
+        # Email sender details
+        sender_email = self.sender_email
+        sender_password = self.password
+
+        # Email Subject
+        subject = f"Your Car Booking Details - {booking.booking_id}"
+
+        # Email Body - Main Details
+        email_body = f"""
+        Dear {customer.user_name},
+
+        Thank you for booking with us! Here are your booking details:
+
+        Booking ID: {booking.booking_id}
+        Car Model: {car.model_name}
+        Car Brand: {car.model_name}
+        Pickup Date: {format_timestamp(booking.start_date)}
+        Return Date: {format_timestamp(booking.end_date)}
+        Total Price: {booking.total_amount}
+
+        """
+
+        # Add Additional Services if Booked
+        if additional_services:
+            email_body += "Additional Services Booked:\n"
+            for service in additional_services:
+                email_body += f"\t  - {service.services_description}\n"
+
+        # Footer
+        email_body += """
+
+        Please ensure to carry your valid driving license and ID during pickup.
+
+        If you have any questions, feel free to contact our support team.
+
+        Safe travels!
+        Best Regards,
+        Car Rental Team
+        """
+
+        # Creating Email Message
+        msg = EmailMessage()
+        msg.set_content(email_body)
+        msg["Subject"] = subject
+        msg["From"] = sender_email
+        msg["To"] = customer.user_email
+
+        user_email = "thanushkawickramarachchi@gmail.com"
+
+        # Sending the email
+        try:
+            with smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, context=self.context) as server:
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, user_email, msg.as_string())
+        except Exception as e:
+            print(f"Failed to send email: {e}")
+
     def send_car_invoice_email(self, customer, invoice, booking, additional_services=None):
         """
         Sends a car booking confirmation email, including additional services if booked.

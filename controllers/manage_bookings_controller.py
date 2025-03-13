@@ -4,6 +4,7 @@ from database.sql_statement import SELECT_INVOICES_BY_BOOKING_ID, SELECT_ADDITIO
 from models.additional_services import AdditionalServices
 from models.booking import Booking
 from models.invoice import Invoice
+from models.response_model import ResponseModel
 from models.user import User
 from presenter.user_interface import UiTypes
 from services.email_service import EmailService
@@ -135,3 +136,22 @@ class ManageBookingController(BaseController):
             self.ui.display_input(UiTypes.REQUEST_INT_INPUT,
                                   self.string_resource.get(Constants.PRINT_MANAGE_INPUT_INVALID_1_2),
                                   Constants.CALLBACK_NAVIGATION)
+
+    def update_booking_status_api(self, booking_id, status):
+        try:
+            if status == 1 or status == 2:
+                booking = Booking.update_booking_by_booking_id(self.db, booking_id, status)
+                # Create Invoice
+                invoice = Invoice(booking_id=booking.booking_id, user_id=booking.user_id,
+                                  amount=booking.total_amount,
+                                  is_paid=0, is_active=1)
+                new_invoice = Invoice.insert(self.db, invoice)
+                if status == 1:
+                    self._send_email(booking_id)
+                return ResponseModel.create(new_invoice).to_dict()
+        except IndexError as e:
+            print(e)
+            return ResponseModel.create(message="Entered booking id not found.", is_error=True, code=400).to_dict()
+        except Exception as e:
+            print(e)
+            return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()

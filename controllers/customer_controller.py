@@ -1,19 +1,20 @@
-import time
-
 from constants import Constants
 from controllers.base_controller import BaseController
 from controllers.invoice_payment_controller import InvoicePaymentController
 from controllers.my_bookings_controller import MyBookingsController
+from database.sql_statement import SELECT_ALL_BOOKINGS_ORDER_BY_ASC
 from models.additional_services import AdditionalServices
 from models.booking import Booking
 from models.booking_additional_services import BookingAdditionalServices
 from models.car import Car
 from models.response_model import ResponseModel
+from models.user import User
 
-from presenter.user_interface import UserInterface, UiTypes
+from presenter.user_interface import UiTypes
 from services.email_service import EmailService
 from services.sms import Sms
 from utils.input_validation import *
+
 
 
 class CustomerController(BaseController):
@@ -29,8 +30,10 @@ class CustomerController(BaseController):
         try:
             cars = Car.select_with_details_and_display(self.db)
 
-            selected_car =  cars[get_valid_integer(f"Enter Selected Car Index (1-{len(cars)}): ", 1, len(cars)) - 1]
-            booking_days = get_valid_integer(f"How many days would you like to book? (Choose between {selected_car["min_rental_period"]} and {selected_car["max_rental_period"]} days):", int(selected_car["min_rental_period"]), int(selected_car["max_rental_period"]))
+            selected_car = cars[get_valid_integer(f"Enter Selected Car Index (1-{len(cars)}): ", 1, len(cars)) - 1]
+            booking_days = get_valid_integer(
+                f"How many days would you like to book? (Choose between {selected_car["min_rental_period"]} and {selected_car["max_rental_period"]} days):",
+                int(selected_car["min_rental_period"]), int(selected_car["max_rental_period"]))
             start_date = get_future_date()
             # Calculate the end date by adding `booking_days` to the start date
             end_date = start_date + timedelta(days=booking_days)
@@ -39,10 +42,10 @@ class CustomerController(BaseController):
             end_date_timestamp = int(end_date.timestamp())
 
             # Get only "yes" or "no" for additional services
-            if get_valid_is_active(input_text= "Do you want to add additional services?"):
+            if get_valid_is_active(input_text="Do you want to add additional services?"):
                 # Fetch additional services from the database
                 all_services = AdditionalServices.display_additional_services(self.db)
-                selected_services =  self.select_services(all_services)
+                selected_services = self.select_services(all_services)
 
             # Display details
             print(f"\nBooking Details:")
@@ -53,8 +56,8 @@ class CustomerController(BaseController):
             print(f"Car Brand: {selected_car['brand_name']}")
             print(f"Car Model: {selected_car['brand_model_name']}")
 
-            total = float(selected_car['daily_rate']) *  booking_days
-            print( f"\nDaily rate({selected_car['daily_rate']}) x booking_days({booking_days}) = {total}")
+            total = float(selected_car['daily_rate']) * booking_days
+            print(f"\nDaily rate({selected_car['daily_rate']}) x booking_days({booking_days}) = {total}")
 
             if selected_services:
                 for service in selected_services:
@@ -65,9 +68,9 @@ class CustomerController(BaseController):
 
             if get_valid_is_active(input_text="Do you want to confirm your booking?"):
                 note = input("Enter a note for the booking (optional, press Enter to skip): ").strip()
-                booking_status = 2 # Pending
-                new_booking = Booking(user_id=self.customer.user_id ,
-                                      car_id= selected_car["car_id"],
+                booking_status = 2  # Pending
+                new_booking = Booking(user_id=self.customer.user_id,
+                                      car_id=selected_car["car_id"],
                                       booking_status_id=booking_status,
                                       start_date=start_date_timestamp,
                                       end_date=end_date_timestamp,
@@ -84,12 +87,12 @@ class CustomerController(BaseController):
 
                         BookingAdditionalServices.insert(self.db, booking_additional_services)
 
-                send_sms = Sms()
-                send_sms.send_sms(booking.booking_id)
+                self.send_sms(booking)
 
                 self.ui.clear_console()
                 send_email = EmailService()
-                send_email.send_car_booking_email(customer=self.customer, booking=booking, car=selected_car, additional_services=selected_services)
+                send_email.send_car_booking_email(customer=self.customer, booking=booking, car=selected_car,
+                                                  additional_services=selected_services)
                 self.ui.press_any_key_to_continue()
                 self.ui.clear_console()
                 self.display_menu()
@@ -108,7 +111,8 @@ class CustomerController(BaseController):
             end_date = booking["end_date"]
             booking_days = calculate_days_difference(start_date, end_date)
             if booking_days <= 0:
-                return ResponseModel.create(message="Selected booking days not valid.", is_error=True, code=400).to_dict()
+                return ResponseModel.create(message="Selected booking days not valid.", is_error=True,
+                                            code=400).to_dict()
             total = float(new_car.daily_rate) * booking_days
 
             new_booking = Booking(user_id=booking["user_id"],
@@ -119,15 +123,25 @@ class CustomerController(BaseController):
                                   total_amount=total,
                                   note=booking["note"],
                                   is_active=1)
-            return ResponseModel.create(Booking.insert(self.db, new_booking)).to_dict()
+            inserted_booking = Booking.insert(self.db, new_booking)
+            # self.send_sms(booking)
+            selected_services = AdditionalServices.select_by_service_id(self.db, booking["additional_services"][0]["additional_services_id"])
+            self.send_email(user_id=booking["user_id"], booking=inserted_booking, car=new_car, services=selected_services)
+
+            return ResponseModel.create(inserted_booking).to_dict()
         except IndexError as e:
+            print(e)
             return ResponseModel.create(message="Entered car id not found.", is_error=True, code=400).to_dict()
         except Exception as e:
+            print(e)
             return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()
 
     def get_all_bookings_api(self, user_id):
         try:
-            return ResponseModel.create(Booking.get_bookings_by_user_id(self.db, user_id)).to_dict()
+            if user_id != -1:
+                return ResponseModel.create(Booking.get_bookings_by_user_id(self.db, user_id)).to_dict()
+            else:
+                return ResponseModel.create(Booking.get_bookings(self.db, SELECT_ALL_BOOKINGS_ORDER_BY_ASC)).to_dict()
         except Exception as e:
             return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()
 
@@ -189,7 +203,6 @@ class CustomerController(BaseController):
                               self.string_resource.get(Constants.PRINT_ENTER_CHOICE_INPUT_1_4),
                               Constants.CALLBACK_NAVIGATION)
 
-
     def on_input_callback(self, callback_type, choice, params=None):
         if callback_type == Constants.CALLBACK_NAVIGATION:
             self.menu_navigation(choice)
@@ -214,3 +227,14 @@ class CustomerController(BaseController):
             self.ui.display_input(UiTypes.REQUEST_INT_INPUT,
                                   self.string_resource.get(Constants.PRINT_MANAGE_INPUT_INVALID_1_4),
                                   Constants.CALLBACK_NAVIGATION)
+
+    def send_sms(self, booking):
+        send_sms = Sms()
+        send_sms.send_sms(booking.booking_id)
+        pass
+
+    def send_email(self, user_id, booking, car, services):
+        user = User.select_user_by_user_id(self.db, user_id)[0]
+        send_email = EmailService()
+        send_email.send_car_booking_email_api(customer=user, booking=booking, car=car,
+                                                  additional_services=services)

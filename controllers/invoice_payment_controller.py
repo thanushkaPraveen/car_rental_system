@@ -150,6 +150,10 @@ Payment URL: {Constants.PAYMENT_URL}{invoice["invoice_id"]}
 
     def get_all_invoices_api(self, user_id):
         try:
-            return ResponseModel.create(Invoice.fetch_user_invoices(self.db, user_id)).to_dict()
+            if user_id != -1:
+                return ResponseModel.create(Invoice.fetch_user_invoices(self.db, user_id)).to_dict()
+            else:
+                return ResponseModel.create(Invoice.fetch_all_invoices_for_admin(self.db)).to_dict()
         except Exception as e:
+            print(e)
             return ResponseModel.create(message="Required fields missing.", is_error=True, code=400).to_dict()

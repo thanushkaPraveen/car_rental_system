@@ -109,6 +109,31 @@ class AdditionalServices:
         return additional_services
 
     @staticmethod
+    def select_by_service_id(db, service_id):
+        """
+        Retrieves additional services from the database.
+
+        :param db: Database connection object.
+        :param service: Optional AdditionalServices object to filter by ID.
+        :return: List of AdditionalServices objects.
+        """
+        sql = SELECT_ALL_ADDITIONAL_SERVICES if service_id is None else SELECT_ADDITIONAL_SERVICE_BY_ID
+        values = (service_id,)
+        rows = db.select_from_database(sql, values)
+
+        additional_services = []
+        for row in rows:
+            service_obj = AdditionalServices(
+                services_description=row[1],
+                services_amount=row[2],
+                is_active=row[3],
+                additional_services_id=row[0]
+            )
+            additional_services.append(service_obj)
+
+        return additional_services
+
+    @staticmethod
     def get_additional_services_by_booking_id(db, query, booking_id):
         """
         Fetches additional services associated with a specific booking ID.
