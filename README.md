@@ -24,6 +24,114 @@ The Car Rental System automates the rental process for a fictional car rental co
 - **Enhance interaction between customers and administrators**
 - **Provide innovative features to offer a competitive edge**
 
+
+-- API - and new -- 
+
+Python backend implementation for the car rental management system with RESTful API endpoints.
+
+## Features
+
+### Core Functionality
+  - Secure login system
+  - Admin authentication (admin@admin.com)
+
+- **Booking Management**:
+  - Car availability checking
+  - Booking creation with additional services
+  - Booking status updates (Pending/Confirmed/Cancelled)
+  - Comprehensive booking history
+
+- **Invoice System**:
+  - Automatic invoice generation
+  - Payment status tracking
+  - Multi-user invoice management
+
+- **New in v2.0.0**:
+  - Enhanced security with JWT tokens
+  - Rate limiting implementation
+  - Improved request validation
+  - Additional services management
+  - Database optimization
+
+## Changelog (v2.0.0)
+
+### Added
+- Additional services endpoints
+- Email notification system
+
+### Changed
+- Improved database schema design
+- RESTful endpoint structure
+- Enhanced error handling
+- Optimized SQL queries
+
+### Fixed
+- Date validation issues
+- Concurrent booking conflicts
+- Database connection pooling
+- Invoice calculation errors
+
+## Installation
+
+1. **Clone repository**:
+   ```bash
+   git clone https://github.com/thanushkaPraveen/car_rental_system.git
+   cd car-rental-api
+   git checkout tags/v2.0.0
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Environment Setup**:
+   ```bash
+   cp .env.example .env
+   # Update .env with your configurations
+   ```
+
+4. **Database Migration**:
+   ```bash
+   alembic upgrade head
+   ```
+
+5. **Run Server**:
+   ```bash
+   gunicorn --bind 0.0.0.0:8000 main:app
+   ```
+
+## API Documentation
+
+
+Key Endpoints:
+```http
+POST /api/v1/user/register
+POST /api/v1/user/login
+GET /api/v1/booking/get-all-cars
+POST /api/v1/booking/create-a-booking
+POST /api/v1/admin/update-booking-status
+POST /api/v1/invoice/get-all-invoices
+```
+`
+
+## Security Notes
+- Change default admin credentials
+- Implement rate limiting
+- Validate all user inputs
+- Store passwords using bcrypt
+
+## Contributors
+- [Thanushka praveen](https://github.com/thanushkaPraveen)
+- [Kanishka] (https://github.com/Nirman92)
+- [Vindya] (https://github.com/Vindya-Su)
+
+## Report Issues
+[GitHub Issues](https://github.com/your-username/car-rental-api/issues)
+
+
+-- OLD -- 
+
 ### System Workflow
 
 ![System Workflow](docs/images/work_flow.png)
